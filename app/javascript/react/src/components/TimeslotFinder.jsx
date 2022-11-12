@@ -1,13 +1,12 @@
 import React, {useState} from 'react';
 import DatePicker from 'react-datepicker'
-import "react-datepicker/dist/react-datepicker.css";
 
 const TimeslotFinder = () => {
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     tomorrow.setHours(0,0,0,0)
-    const [startDate, setStartDate] = useState(tomorrow);
+    const [startDate, setStartDate] = useState(tomorrow.getTime());
     const [interval, setInterval] = useState(15);
     const [suggestions, setSuggestions] = useState([]);
 
@@ -30,7 +29,7 @@ const TimeslotFinder = () => {
 
     const handleSubmit = async () => {
         try{
-            const response = await fetch('/timeslots', {
+            await fetch('/timeslots', {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -38,7 +37,6 @@ const TimeslotFinder = () => {
                 method: "POST",
                 body: JSON.stringify({start_date: suggestions[selectedTimeIndex].start_date, end_date: suggestions[selectedTimeIndex].end_date})
             });
-            console.log(await response.json());
         }catch(error) {
         }
     }
@@ -60,25 +58,31 @@ const TimeslotFinder = () => {
     }
 
     const suggestionsElements = suggestions.map((suggestion, index) => {
-        return (<label key={index}>
+        return (<div className="form-check" key={index}>
             <input
                 type="radio"
                 value={index}
+                className="form-check-input"
+                id={`suggestion-${index}`}
                 checked={index == selectedTimeIndex}
                 onChange={onTimePick}
-            /> {new Date(Date.parse(suggestion.start_date)).toLocaleString()}-{new Date(Date.parse(suggestion.end_date)).toLocaleString()}</label>)
-        })
+            />
+            <label className="form-check-label" htmlFor={`suggestion-${index}`}>
+                {new Date(Date.parse(suggestion.start_date)).toLocaleString()}-{new Date(Date.parse(suggestion.end_date)).toLocaleString()}
+            </label>
+        </div>)
+    });
 
     return (
-
         <form onSubmit={handleSubmit}>
-            <section>
                 <div className="container">
                     <div className="row">
                         <div className="col col-md-8">
-                        <h2>Possible Start</h2>
 
+                            <div className="form-group">
+                                <label htmlFor="calendar">Possible Start</label>
                         <DatePicker
+                            id="calendar"
                             selected={startDate}
                             onChange={handleCalendarChange}
                             showTimeSelect
@@ -88,12 +92,13 @@ const TimeslotFinder = () => {
                             dateFormat="MMMM d, yyyy HH:mm "
                         />
                         </div>
+                        </div>
                     </div>
 
                     <div className="row">
-                        <div className="col col-md-4">
-                        <label className="form-label">
-                            <h2>Needed time in minutes</h2>
+                        <div className="col col-md-8">
+                            <div className="form-group">
+                                <label htmlFor="calendar">Needed time (in minutes):</label>
                             <select className="form-select" aria-label="Default select example" onChange={handleSelectChange}>
                                 <option>15</option>
                                 <option>30</option>
@@ -104,21 +109,23 @@ const TimeslotFinder = () => {
                                 <option>105</option>
                                 <option>120</option>
                             </select>
-                        </label>
+                            </div>
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col col-md-4 radio">
+                        <div className="col col-md-8 radio">
+                            <div className="form-group">
+                                <label htmlFor="calendar">possible timeslot:</label>
                             {suggestionsElements}
+                            </div>
                         </div>
                     </div>
                     <div className="row">
                         <div className="col col-md-8">
-                            <button type="submit" className="btn btn-primary btn-lg btn-danger">Submit</button>
+                            <button type="submit" className="btn btn-primary">Submit</button>
                         </div>
                     </div>
                 </div>
-            </section>
         </form>
        )
 }
