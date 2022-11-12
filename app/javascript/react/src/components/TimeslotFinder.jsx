@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import DatePicker from 'react-datepicker'
+import {ReactNotifications, Store} from 'react-notifications-component'
 
 const TimeslotFinder = () => {
     const today = new Date()
@@ -9,8 +10,20 @@ const TimeslotFinder = () => {
     const [startDate, setStartDate] = useState(tomorrow.getTime());
     const [interval, setInterval] = useState(15);
     const [suggestions, setSuggestions] = useState([]);
+    const [existingTimeslots, setExistingTimeslots] = useState([]);
 
-    const [selectedTimeIndex, setSelectedTimeIndex] = useState(0);
+    const [selectedTimeIndex, setSelectedTimeIndex] = useState();
+
+    const loadData = async () => {
+        const response = await fetch('/timeslots');
+        const body = await response.json();
+        setExistingTimeslots(body.timeslots);
+    }
+
+    React.useEffect(() => {
+        loadData();
+    }, []);
+
     const handleSelectChange = (event) => {
         const newInterval = event.target.value
         setInterval(newInterval);
@@ -27,9 +40,10 @@ const TimeslotFinder = () => {
         setStartDate(newDate)
     }
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
         try{
-            await fetch('/timeslots', {
+            e.preventDefault();
+            const result = await fetch('/timeslots', {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -37,7 +51,37 @@ const TimeslotFinder = () => {
                 method: "POST",
                 body: JSON.stringify({start_date: suggestions[selectedTimeIndex].start_date, end_date: suggestions[selectedTimeIndex].end_date})
             });
+            if (result.status !== 201) {
+                throw new Error("Something went wrong");
+            }
+            loadData();
+
+            Store.addNotification({
+                title: "Timeslot reserved!",
+                message: "Timeslot was successfully created.",
+                type: "success",
+                insert: "top",
+                container: "top-right",
+                animationIn: [],
+                animationOut: [],
+                dismiss: {
+                    duration: 3000
+                }
+            });
+
         }catch(error) {
+            Store.addNotification({
+                title: "Something went wrong",
+                message: "Please try again",
+                type: "danger",
+                insert: "top",
+                container: "top-right",
+                animationIn: [],
+                animationOut: [],
+                dismiss: {
+                    duration: 3000
+                }
+            });
         }
     }
 
@@ -74,12 +118,14 @@ const TimeslotFinder = () => {
     });
 
     return (
+        <div>
+            <ReactNotifications/>
         <form onSubmit={handleSubmit}>
                 <div className="container">
                     <div className="row">
-                        <div className="col col-md-8">
+                        <div className="col col-md-6" style={{height: '200px'}}>
 
-                            <div className="form-group">
+                            <div className="form-group" style={{paddingTop: '20px'}}>
                                 <label htmlFor="calendar">Possible Start</label>
                         <DatePicker
                             id="calendar"
@@ -92,12 +138,7 @@ const TimeslotFinder = () => {
                             dateFormat="MMMM d, yyyy HH:mm "
                         />
                         </div>
-                        </div>
-                    </div>
-
-                    <div className="row">
-                        <div className="col col-md-8">
-                            <div className="form-group">
+                            <div className="form-group" style={{paddingTop: '20px'}}>
                                 <label htmlFor="calendar">Needed time (in minutes):</label>
                             <select className="form-select" aria-label="Default select example" onChange={handleSelectChange}>
                                 <option>15</option>
@@ -111,22 +152,48 @@ const TimeslotFinder = () => {
                             </select>
                             </div>
                         </div>
-                    </div>
-                    <div className="row">
-                        <div className="col col-md-8 radio">
+                        {suggestionsElements.length > 0 ?
+                            (<div className="col col-md-6 radio" style={{paddingTop: '20px'}}>
                             <div className="form-group">
-                                <label htmlFor="calendar">possible timeslot:</label>
-                            {suggestionsElements}
+                                <label htmlFor="calendar">Available timeslots:</label>
+                                {suggestionsElements}
                             </div>
-                        </div>
+                        </div>):null}
+
                     </div>
                     <div className="row">
-                        <div className="col col-md-8">
-                            <button type="submit" className="btn btn-primary">Submit</button>
+                        <div className="col col-md-6">
+                            <button type="submit"
+                                    disabled={selectedTimeIndex == undefined}
+                                    className="btn btn-primary"
+                            >Submit</button>
                         </div>
                     </div>
                 </div>
         </form>
+        <div className="container">
+            <table className="table fixed-table">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Start date</th>
+                    <th scope="col">End date</th>
+                </tr>
+                </thead>
+                <tbody>
+                {existingTimeslots.map((s, index) => {
+                    return (
+                        <tr key={index}>
+                            <th scope="row">{index}</th>
+                            <td>{new Date(Date.parse(s.start_date)).toLocaleString()}</td>
+                            <td>{new Date(Date.parse(s.end_date)).toLocaleString()}</td>
+                        </tr>)
+                })}
+
+                </tbody>
+            </table>
+        </div>
+        </div>
        )
 }
 
