@@ -1,4 +1,4 @@
 import { define } from 'remount'
-import Hello from "./components/Hello"
+import TimeslotFinder from "./components/TimeslotFinder"
 
-define({ 'hello-component': Hello })
+define({ 'timeslot-finder': TimeslotFinder })

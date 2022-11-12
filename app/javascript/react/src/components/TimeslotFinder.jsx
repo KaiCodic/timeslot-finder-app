@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 
-const Hello = () => {
+const TimeslotFinder = () => {
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
@@ -10,6 +10,7 @@ const Hello = () => {
     const [startDate, setStartDate] = useState(tomorrow);
     const [interval, setInterval] = useState(15);
     const [suggestions, setSuggestions] = useState([]);
+
     const [selectedTimeIndex, setSelectedTimeIndex] = useState(0);
     const handleSelectChange = (event) => {
         const newInterval = event.target.value
@@ -49,7 +50,6 @@ const Hello = () => {
     async function getSuggestions(date,interval) {
 
         try{
-            //console.log(startDate)
             const response = await fetch('/suggested_timeslots?date=' + date + '&interval=' + interval);
             const body = await response.json();
             setSuggestions(body.timeslots);
@@ -66,12 +66,11 @@ const Hello = () => {
                 value={index}
                 checked={index == selectedTimeIndex}
                 onChange={onTimePick}
-            /> {suggestion.start_date}-{suggestion.end_date}</label>)
+            /> {new Date(Date.parse(suggestion.start_date)).toLocaleString()}-{new Date(Date.parse(suggestion.end_date)).toLocaleString()}</label>)
         })
 
-   // console.log(suggestions)
-
     return (
+
         <form onSubmit={handleSubmit}>
             <section>
                 <div className="container">
@@ -84,8 +83,9 @@ const Hello = () => {
                             onChange={handleCalendarChange}
                             showTimeSelect
                             minDate={new Date()}
+                            timeFormat="HH:mm"
                             timeIntervals={15}
-                            dateFormat="MMMM d, yyyy hh:mm z"
+                            dateFormat="MMMM d, yyyy HH:mm "
                         />
                         </div>
                     </div>
@@ -119,7 +119,8 @@ const Hello = () => {
                     </div>
                 </div>
             </section>
-        </form>)
+        </form>
+       )
 }
 
-export default Hello
+export default TimeslotFinder

@@ -12,10 +12,16 @@ class TimeSlotController < ApplicationController
     interval = params[:interval].to_i
     while @open_timeslots.length < 5
       possible_end = possible_start + interval.minutes
-      if  Timeslot.include_time(possible_start).length == 0 && (
-        Timeslot.include_time(possible_end).length == 0 || Timeslot.include_time(possible_start + interval.minutes).first.start_date == possible_end)
+      next_timeslots = Timeslot.start_date_after_or_equal(possible_start).order(:start_date).limit(1)
+      if next_timeslots.length > 0
+        next_timeslot = Timeslot.start_date_after_or_equal(possible_start).order(:start_date).first
+        if !Timeslot.overlaps(possible_start, possible_end, next_timeslot.start_date, next_timeslot.end_date)
+          @open_timeslots << Timeslot.new(start_date: possible_start, end_date: possible_end)
+        end
+      else
         @open_timeslots << Timeslot.new(start_date: possible_start, end_date: possible_end)
       end
+
       possible_start = possible_start + 15.minutes
     end
 
