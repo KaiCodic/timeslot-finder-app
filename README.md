@@ -2,6 +2,31 @@
 =======
 # README
 
+# Sample timeslot finder app
+
+### Installation
+
+* 🐋 Docker
+* NodeJS (version see [.nvmrc](.nvmrc))
+* Ruby (version see [.ruby-version](.ruby-version))
+* Yarn
+
+
+```
+bundle install
+rails dev:setup
+rails db:migrate
+rails db:seed
+yarn install
+```
+
+start application
+```
+./bin/dev
+open http://localhost:3000
+```
+
+
 This README would normally document whatever steps are necessary to get the
 application up and running.
 

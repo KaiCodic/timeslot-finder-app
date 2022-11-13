@@ -19,7 +19,6 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_11_063525) do
     t.datetime "end_date", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["start_date", "end_date"], name: "index_timeslots_on_start_date_and_end_date", unique: true
   end
 
 end

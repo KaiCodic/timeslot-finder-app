@@ -2,7 +2,6 @@
 
 module Development
   module Docker
-
     def docker(command)
       `docker #{command}`.strip
     end

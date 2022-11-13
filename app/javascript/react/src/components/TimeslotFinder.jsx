@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import DatePicker from 'react-datepicker'
 import {ReactNotifications, Store} from 'react-notifications-component'
 
@@ -11,7 +11,6 @@ const TimeslotFinder = () => {
     const [interval, setInterval] = useState(15);
     const [suggestions, setSuggestions] = useState([]);
     const [existingTimeslots, setExistingTimeslots] = useState([]);
-
     const [selectedTimeIndex, setSelectedTimeIndex] = useState();
 
     const loadData = async () => {
@@ -20,7 +19,7 @@ const TimeslotFinder = () => {
         setExistingTimeslots(body.timeslots);
     }
 
-    React.useEffect(() => {
+    useEffect(() => {
         loadData();
     }, []);
 
@@ -55,7 +54,7 @@ const TimeslotFinder = () => {
                 throw new Error("Something went wrong");
             }
             loadData();
-
+            setSuggestions([]);
             Store.addNotification({
                 title: "Timeslot reserved!",
                 message: "Timeslot was successfully created.",
